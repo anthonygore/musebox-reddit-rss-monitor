@@ -5,5 +5,6 @@ ssh root@137.184.43.172
 cd /opt/musebox-rss-monitor
 git fetch
 git pull origin main
-pm2 restart reddit-rss-monitor
+npm i
+pm2 restart reddit-rss-monitor --update-env
 ```

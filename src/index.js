@@ -1,10 +1,17 @@
-// Polyfill fetch for Node.js < 18
+// Polyfill fetch and related APIs for Node.js < 18
 if (!globalThis.fetch) {
   const nodeFetch = await import('node-fetch');
+  const { FormData, File, Blob } = await import('formdata-node');
+
   globalThis.fetch = nodeFetch.default;
   globalThis.Headers = nodeFetch.Headers;
   globalThis.Request = nodeFetch.Request;
   globalThis.Response = nodeFetch.Response;
+  globalThis.FormData = FormData;
+  globalThis.File = File;
+  globalThis.Blob = Blob;
+
+  console.log('[Polyfill] Loaded fetch, Headers, Request, Response, FormData, File, and Blob for Node.js < 18');
 }
 
 import cron from 'node-cron';
