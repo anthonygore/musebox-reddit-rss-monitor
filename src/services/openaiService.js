@@ -7,9 +7,13 @@ class OpenAIService {
     this.enabled = !!config.openai.apiKey;
 
     if (this.enabled) {
+      // Use globalThis.fetch if available (Node 18+), otherwise will need polyfill
+      const fetchFn = globalThis.fetch || undefined;
+
       this.client = new OpenAI({
         apiKey: config.openai.apiKey,
-        timeout: 30000 // 30 second timeout
+        timeout: 30000, // 30 second timeout
+        fetch: fetchFn
       });
       this.logger.info('OpenAI service initialized');
     } else {

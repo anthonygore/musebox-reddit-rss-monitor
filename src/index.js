@@ -1,3 +1,9 @@
+// Polyfill fetch for Node.js < 18
+if (!globalThis.fetch) {
+  const fetch = (await import('node-fetch')).default;
+  globalThis.fetch = fetch;
+}
+
 import cron from 'node-cron';
 import config from './config/env.js';
 import Logger from './utils/logger.js';
