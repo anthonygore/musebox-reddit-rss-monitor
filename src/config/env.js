@@ -97,6 +97,13 @@ const config = {
     apiKey: getEnv('OPENAI_API_KEY', ''),
     model: getEnv('OPENAI_MODEL', 'gpt-4o-mini'),
     prompt: loadOpenAIPrompt()
+  },
+
+  // Environment
+  env: {
+    nodeEnv: getEnv('NODE_ENV', 'development'),
+    isDevelopment: getEnv('NODE_ENV', 'development') === 'development',
+    isProduction: getEnv('NODE_ENV', 'development') === 'production'
   }
 };
 

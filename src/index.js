@@ -1,7 +1,10 @@
 // Polyfill fetch for Node.js < 18
 if (!globalThis.fetch) {
-  const fetch = (await import('node-fetch')).default;
-  globalThis.fetch = fetch;
+  const nodeFetch = await import('node-fetch');
+  globalThis.fetch = nodeFetch.default;
+  globalThis.Headers = nodeFetch.Headers;
+  globalThis.Request = nodeFetch.Request;
+  globalThis.Response = nodeFetch.Response;
 }
 
 import cron from 'node-cron';

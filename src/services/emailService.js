@@ -59,9 +59,14 @@ class EmailService {
         new Recipient(this.config.email.toEmail)
       ];
 
-      const subject = posts.length === 1
+      let subject = posts.length === 1
         ? `New Reddit post from r/${posts[0].subreddit}`
         : `${posts.length} new Reddit posts`;
+
+      // Prefix with [dev] if in development mode
+      if (this.config.env.isDevelopment) {
+        subject = `[dev] ${subject}`;
+      }
 
       const emailBody = this.formatEmailBody(posts);
 
