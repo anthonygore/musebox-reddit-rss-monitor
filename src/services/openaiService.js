@@ -176,12 +176,10 @@ class OpenAIService {
     // Use fullContent (fetched from Reddit), fallback to RSS snippet
     const content = post.fullContent || post.content || post.contentSnippet;
     if (content && content.trim().length > 0) {
-      message += `Post Content:\n${content}\n\n`;
+      message += `Post Content:\n${content}`;
     } else {
-      message += `Post Content: [No text content - may be link/image/video post]\n\n`;
+      message += `Post Content: [No text content - may be link/image/video post]`;
     }
-
-    message += `Post Link: ${post.link}`;
 
     return message;
   }
