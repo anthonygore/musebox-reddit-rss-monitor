@@ -7,6 +7,7 @@ A Node.js application that monitors multiple Reddit RSS feeds and sends email no
 - Monitor multiple subreddits simultaneously
 - Check RSS feeds at configurable intervals (default: every 5 minutes)
 - Only notify about posts published within a specific time window (default: last 5 minutes)
+- **AI-generated reply suggestions** - Uses OpenAI to generate thoughtful replies for each post (optional)
 - In-memory post tracking - no database required
 - Automatic memory cleanup to prevent unbounded growth
 - Email notifications via MailerSend
@@ -17,6 +18,7 @@ A Node.js application that monitors multiple Reddit RSS feeds and sends email no
 - Node.js 14.0 or higher
 - MailerSend account with verified domain
 - MailerSend API token
+- OpenAI API key (optional - for AI reply generation feature)
 
 ## MailerSend Setup
 
@@ -24,6 +26,19 @@ A Node.js application that monitors multiple Reddit RSS feeds and sends email no
 2. Verify your domain (required for sending emails)
 3. Generate an API token from the MailerSend dashboard
 4. The FROM_EMAIL must be from your verified domain
+
+## OpenAI Setup (Optional)
+
+The app can generate AI-powered reply suggestions for each Reddit post using OpenAI's API. This feature is completely optional.
+
+1. Sign up for an OpenAI account at https://platform.openai.com/
+2. Generate an API key from the API keys section
+3. Add the API key to your `.env` file (see Configuration below)
+4. Customize the `OPENAI_PROMPT` to match your desired reply style
+
+**Note:** If you don't provide an OpenAI API key, the app will work normally without AI reply generation.
+
+**Cost:** Using `gpt-4o-mini` (default), expect ~$0.12/month for moderate usage (25 posts/day).
 
 ## Installation
 
@@ -56,6 +71,11 @@ POST_AGE_MINUTES=5
 
 # Logging
 LOG_LEVEL=info
+
+# OpenAI Configuration (optional)
+OPENAI_API_KEY=your_openai_api_key_here
+OPENAI_MODEL=gpt-4o-mini
+OPENAI_PROMPT=You are a helpful musician responding to Reddit posts. Generate a thoughtful, friendly reply.
 ```
 
 ## Usage
@@ -92,14 +112,18 @@ All configuration is done via environment variables in the `.env` file:
 | CHECK_INTERVAL_MINUTES | No | 5 | How often to check RSS feeds |
 | POST_AGE_MINUTES | No | 5 | Only consider posts this recent as "new" |
 | LOG_LEVEL | No | info | Logging level (debug, info, error) |
+| OPENAI_API_KEY | No | - | OpenAI API key (enables AI reply generation) |
+| OPENAI_MODEL | No | gpt-4o-mini | OpenAI model to use |
+| OPENAI_PROMPT | No | Default prompt | System prompt for AI reply generation |
 
 ## How It Works
 
 1. **RSS Fetching**: Fetches RSS feeds from Reddit for configured subreddits
 2. **Time Filtering**: Only considers posts published within the last N minutes
 3. **Duplicate Detection**: Tracks seen post IDs in memory to prevent re-sending
-4. **Email Notification**: Batches all new posts into a single email per check
-5. **Memory Cleanup**: Automatically removes posts older than 1 hour from tracking
+4. **AI Reply Generation** (Optional): Generates suggested replies using OpenAI for each new post
+5. **Email Notification**: Batches all new posts (with AI replies if enabled) into a single email per check
+6. **Memory Cleanup**: Automatically removes posts older than 1 hour from tracking
 
 ## Project Structure
 
@@ -112,7 +136,8 @@ musebox-rss-monitor/
 │   ├── services/
 │   │   ├── rssService.js        # RSS feed fetching
 │   │   ├── emailService.js      # Email sending
-│   │   └── postTracker.js       # Post tracking
+│   │   ├── postTracker.js       # Post tracking
+│   │   └── openaiService.js     # OpenAI reply generation
 │   └── utils/
 │       ├── logger.js            # Logging
 │       └── dateUtils.js         # Date utilities

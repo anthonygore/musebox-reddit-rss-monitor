@@ -18,7 +18,19 @@ class EmailService {
     const header = `You have ${posts.length} new Reddit post${posts.length > 1 ? 's' : ''}:\n\n`;
 
     const postsList = posts.map((post, index) => {
-      return `${index + 1}. r/${post.subreddit}: ${post.title}\n   ${post.link}`;
+      let postText = `${index + 1}. r/${post.subreddit}: ${post.title}\n   ${post.link}`;
+
+      // Check if AI decided to reply or skip
+      if (post.shouldReply === false) {
+        // AI decided to skip this post
+        const reason = post.skipReason || 'Not relevant';
+        postText += `\n\n   AI Decision: SKIP\n   Reason: ${reason}`;
+      } else if (post.aiReply) {
+        // AI generated a reply
+        postText += `\n\n   AI Suggested Reply:\n   ${post.aiReply.split('\n').join('\n   ')}`;
+      }
+
+      return postText;
     }).join('\n\n');
 
     const footer = `\n\n---\nReddit RSS Monitor`;

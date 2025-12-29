@@ -1,4 +1,11 @@
 import dotenv from 'dotenv';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get current directory (ES modules)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Load environment variables from .env file
 dotenv.config();
@@ -37,6 +44,28 @@ function isValidEmail(email) {
   return emailRegex.test(email);
 }
 
+/**
+ * Load OpenAI prompt from file
+ * @returns {string} - Prompt text or default prompt
+ */
+function loadOpenAIPrompt() {
+  const promptFilePath = path.join(__dirname, '../../openai-prompt.txt');
+
+  try {
+    if (fs.existsSync(promptFilePath)) {
+      const prompt = fs.readFileSync(promptFilePath, 'utf8').trim();
+      if (prompt.length > 0) {
+        return prompt;
+      }
+    }
+  } catch (error) {
+    console.error(`Warning: Could not read openai-prompt.txt: ${error.message}`);
+  }
+
+  // Fallback to default prompt
+  return 'You are a helpful assistant analyzing Reddit posts. Decide if the post is worth replying to and generate a thoughtful response. Respond in JSON format: {"should_reply": true/false, "reply": "your reply", "reason": "reason if skipping"}.';
+}
+
 // Load and validate configuration
 const config = {
   // MailerSend
@@ -61,6 +90,13 @@ const config = {
   // Logging
   logging: {
     level: getEnv('LOG_LEVEL', 'info')
+  },
+
+  // OpenAI (optional - feature disabled if API key not provided)
+  openai: {
+    apiKey: getEnv('OPENAI_API_KEY', ''),
+    model: getEnv('OPENAI_MODEL', 'gpt-4o-mini'),
+    prompt: loadOpenAIPrompt()
   }
 };
 

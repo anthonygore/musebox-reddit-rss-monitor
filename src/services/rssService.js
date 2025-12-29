@@ -18,6 +18,46 @@ class RssService {
   }
 
   /**
+   * Fetch full post content from Reddit JSON API
+   * @param {string} postUrl - Reddit post URL
+   * @returns {Promise<string|null>} - Full post text or null if failed
+   */
+  async fetchFullPostContent(postUrl) {
+    try {
+      // Convert post URL to JSON endpoint
+      const jsonUrl = postUrl.endsWith('.json') ? postUrl : `${postUrl}.json`;
+
+      this.logger.debug(`Fetching full post content: ${jsonUrl}`);
+
+      const response = await fetch(jsonUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+      });
+
+      if (!response.ok) {
+        this.logger.error(`Failed to fetch post JSON: ${response.status}`);
+        return null;
+      }
+
+      const data = await response.json();
+      const postData = data[0]?.data?.children?.[0]?.data;
+
+      if (!postData) {
+        this.logger.error('Invalid JSON structure from Reddit');
+        return null;
+      }
+
+      // Return selftext (text posts) or empty if it's a link/media post
+      return postData.selftext || '';
+
+    } catch (error) {
+      this.logger.error(`Error fetching full post content: ${error.message}`);
+      return null;
+    }
+  }
+
+  /**
    * Fetch and parse RSS feed for a subreddit
    * @param {string} subreddit - Name of the subreddit (without r/)
    * @returns {Promise<Object>} - Object with success status and posts array
@@ -35,7 +75,9 @@ class RssService {
         title: item.title,
         link: item.link,
         pubDate: item.pubDate || item.isoDate,
-        subreddit: subreddit
+        subreddit: subreddit,
+        content: item.content,
+        contentSnippet: item.contentSnippet
       }));
 
       this.logger.debug(`Fetched ${posts.length} posts from r/${subreddit}`);

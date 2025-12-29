@@ -4,6 +4,7 @@ import Logger from './utils/logger.js';
 import RssService from './services/rssService.js';
 import EmailService from './services/emailService.js';
 import PostTracker from './services/postTracker.js';
+import OpenAIService from './services/openaiService.js';
 
 // Initialize logger
 const logger = new Logger(config.logging.level);
@@ -12,6 +13,7 @@ const logger = new Logger(config.logging.level);
 const rssService = new RssService(logger);
 const emailService = new EmailService(config, logger);
 const postTracker = new PostTracker(logger);
+const openaiService = new OpenAIService(config, logger);
 
 /**
  * Main monitoring task - checks RSS feeds for new posts
@@ -36,7 +38,26 @@ async function monitorFeeds() {
 
     // Send email notification if there are new posts
     if (newPosts.length > 0) {
-      const emailSent = await emailService.sendNotification(newPosts);
+      // Fetch full post content for each new post
+      logger.info('Fetching full post content...');
+      const postsWithFullContent = await Promise.all(
+        newPosts.map(async (post) => {
+          const fullContent = await rssService.fetchFullPostContent(post.link);
+          return {
+            ...post,
+            fullContent: fullContent || post.contentSnippet || post.content
+          };
+        })
+      );
+
+      // Analyze posts with AI if enabled (but don't filter them out)
+      let analyzedPosts = postsWithFullContent;
+      if (openaiService.isEnabled()) {
+        analyzedPosts = await openaiService.analyzeAllPosts(postsWithFullContent);
+      }
+
+      // Send email for ALL posts (including ones AI decided to skip)
+      const emailSent = await emailService.sendNotification(analyzedPosts);
 
       // Mark posts as seen only if email was sent successfully
       if (emailSent) {
