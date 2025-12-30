@@ -49,6 +49,19 @@ class EmailService {
       return false;
     }
 
+    // Filter out posts that AI decided to skip
+    const postsToEmail = posts.filter(post => post.shouldReply !== false);
+
+    if (postsToEmail.length === 0) {
+      this.logger.info('All posts were skipped by AI, no email sent');
+      return false;
+    }
+
+    if (postsToEmail.length < posts.length) {
+      const skippedCount = posts.length - postsToEmail.length;
+      this.logger.info(`Filtered out ${skippedCount} skipped post(s), sending ${postsToEmail.length} post(s)`);
+    }
+
     try {
       const sentFrom = new Sender(
         this.config.email.fromEmail,
@@ -59,16 +72,16 @@ class EmailService {
         new Recipient(this.config.email.toEmail)
       ];
 
-      let subject = posts.length === 1
-        ? `New Reddit post from r/${posts[0].subreddit}`
-        : `${posts.length} new Reddit posts`;
+      let subject = postsToEmail.length === 1
+        ? `New Reddit post from r/${postsToEmail[0].subreddit}`
+        : `${postsToEmail.length} new Reddit posts`;
 
       // Prefix with [dev] if in development mode
       if (this.config.env.isDevelopment) {
         subject = `[dev] ${subject}`;
       }
 
-      const emailBody = this.formatEmailBody(posts);
+      const emailBody = this.formatEmailBody(postsToEmail);
 
       const emailParams = new EmailParams()
         .setFrom(sentFrom)
@@ -76,7 +89,7 @@ class EmailService {
         .setSubject(subject)
         .setText(emailBody);
 
-      this.logger.info(`Sending email notification for ${posts.length} post(s)...`);
+      this.logger.info(`Sending email notification for ${postsToEmail.length} post(s)...`);
 
       await this.mailerSend.email.send(emailParams);
 

@@ -72,7 +72,7 @@ async function monitorFeeds() {
         analyzedPosts = await openaiService.analyzeAllPosts(postsWithFullContent);
       }
 
-      // Send email for ALL posts (including ones AI decided to skip)
+      // Send email (skipped posts will be filtered out by the email service)
       const emailSent = await emailService.sendNotification(analyzedPosts);
 
       // Mark posts as seen only if email was sent successfully

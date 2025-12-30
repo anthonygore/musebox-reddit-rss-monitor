@@ -8,3 +8,9 @@ git pull origin main
 npm i
 pm2 restart reddit-rss-monitor --update-env
 ```
+
+# To check logs
+
+```
+pm2 logs reddit-rss-monitor
+```
